@@ -1,0 +1,21 @@
+# 忽略数据集文件夹和生成的模型文件
+matlab/BPSK/
+matlab/QPSK/
+matlab/8PSK/
+matlab/16QAM/
+matlab/64QAM/
+matlab/4FSK/
+matlab/16APSK/
+matlab/32APSK/
+*.pth
+*.pt
+
+# 忽略Python缓存和临时文件
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+
+# 忽略虚拟环境
+.venv/
+env/
