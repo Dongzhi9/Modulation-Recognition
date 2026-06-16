@@ -130,6 +130,10 @@ python train_improved.py
 
 ![Accuracy vs SNR](improved_acc_vs_snr.png)
 
+### 各 SNR F1 分数
+
+![F1 Score vs SNR](improved_f1_vs_snr.png)
+
 ### 混淆矩阵（示例）
 
 | SNR = -10 dB | SNR = 0 dB | SNR = 10 dB |
@@ -148,6 +152,7 @@ python train_improved.py
 │   ├── BPSK/ ~ 32APSK/    # 调制信号数据集
 │   └── untitled.m         # MATLAB 辅助脚本
 ├── improved_acc_vs_snr.png  # 准确率-SNR 曲线
+├── improved_f1_vs_snr.png   # F1-SNR 曲线
 ├── cm_snr*.png              # 各 SNR 混淆矩阵
 └── improved_model_snr*.pth  # 训练好的模型权重（已gitignore）
 ```

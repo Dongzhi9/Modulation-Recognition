@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, Subset
 from torch.amp import autocast, GradScaler
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score
 from sklearn.model_selection import StratifiedShuffleSplit
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -229,6 +229,8 @@ def main():
     # 存储结果
     snr_accuracies = {}
     snr_reports = {}
+    snr_f1_macro = {}
+    snr_f1_weighted = {}
 
     # ==================== 对每个 SNR 单独训练 ====================
     for target_snr in TARGET_SNRS:
@@ -347,6 +349,13 @@ def main():
         plot_confusion_matrix(all_labels_eval, all_preds, class_names, target_snr, cm_path)
         print(f"  混淆矩阵已保存: {cm_path}")
 
+        # 计算 F1 分数
+        f1_macro = f1_score(all_labels_eval, all_preds, average='macro', zero_division=0)
+        f1_weighted = f1_score(all_labels_eval, all_preds, average='weighted', zero_division=0)
+        snr_f1_macro[target_snr] = f1_macro
+        snr_f1_weighted[target_snr] = f1_weighted
+        print(f"  F1 (macro) = {f1_macro:.4f}, F1 (weighted) = {f1_weighted:.4f}")
+
     # ==================== 绘制结果曲线 ====================
     snr_list = sorted(snr_accuracies.keys())
     acc_list = [snr_accuracies[s] for s in snr_list]
@@ -361,6 +370,28 @@ def main():
         plt.text(s, a + 0.02, f'{a:.3f}', ha='center', va='bottom', fontsize=9)
     plt.tight_layout()
     plt.savefig('improved_acc_vs_snr.png', dpi=150)
+    plt.show()
+
+    # ==================== 绘制 F1-score 曲线 ====================
+    f1_macro_list = [snr_f1_macro[s] for s in snr_list]
+    f1_weighted_list = [snr_f1_weighted[s] for s in snr_list]
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(snr_list, f1_macro_list, marker='s', linewidth=2, markersize=8,
+             label='Macro Avg F1', color='green')
+    plt.plot(snr_list, f1_weighted_list, marker='^', linewidth=2, markersize=8,
+             label='Weighted Avg F1', color='orange')
+    plt.xlabel('SNR (dB)', fontsize=14)
+    plt.ylabel('F1 Score', fontsize=14)
+    plt.title('Improved Model: Modulation Recognition F1 Score vs SNR', fontsize=16)
+    plt.grid(True, alpha=0.3)
+    plt.ylim(0, 1.05)
+    plt.legend(fontsize=12)
+    for s, (m, w) in zip(snr_list, zip(f1_macro_list, f1_weighted_list)):
+        plt.text(s, m + 0.02, f'{m:.3f}', ha='center', va='bottom', fontsize=8, color='green')
+        plt.text(s, w - 0.03, f'{w:.3f}', ha='center', va='top', fontsize=8, color='orange')
+    plt.tight_layout()
+    plt.savefig('improved_f1_vs_snr.png', dpi=150)
     plt.show()
 
     # ==================== 汇总报告 ====================
@@ -385,7 +416,7 @@ def main():
                 except ValueError:
                     pass
 
-        print(f"\nSNR = {snr:3d} dB | Overall Acc = {acc:.4f}")
+        print(f"\nSNR = {snr:3d} dB | Overall Acc = {acc:.4f} | F1(macro) = {snr_f1_macro[snr]:.4f} | F1(weighted) = {snr_f1_weighted[snr]:.4f}")
         for cls, (p, r, f1) in per_class.items():
             marker = " ⚠️" if r < 0.1 else " ✅" if r > 0.8 else ""
             print(f"  {cls:8s}: Prec={p:.3f} Rec={r:.3f} F1={f1:.3f}{marker}")
