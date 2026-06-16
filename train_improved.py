@@ -16,7 +16,7 @@ from collections import defaultdict
 # ==================== 配置 ====================
 data_root = r"D:\xinxiduikangkechengsheji\matlab"
 batch_size = 128
-epochs = 60              # 增加训练轮数
+epochs = 25              # 增加训练轮数
 lr = 0.001
 num_classes = 8
 iq_len = 1024
